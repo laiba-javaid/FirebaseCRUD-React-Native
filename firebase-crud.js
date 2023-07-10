@@ -1,35 +1,40 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, FlatList, Pressable } from 'react-native';
-import { firebase } from './config';
+import { firebase, firestore } from './config';
 
 export default function Fetch() {
   const [users, setUsers] = useState([]);
   const todoRef = firebase.firestore().collection('Todo');
 
+  // Function to Add Data to Firebase Firestore
+  const addDataToFirestore = async (data) => {
+    try {
+      const collectionRef = firestore.collection('Todo');
+      await collectionRef.add(data);
+      console.log('Data added successfully!');
+    } catch (error) {
+      console.error('Error adding data:', error);
+    }
+  };
+
+  const newData = {
+    name: 'xyz',
+    age: 25,
+    email: 'xyz@gmail.com',
+  };
+
   useEffect(() => {
-    /* const fetchData = async () => {
-      try {
-        const querySnapshot = await todoRef.get();
-        const users = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          heading: doc.data().heading,
-          text: doc.data().text,
-        }));
-        setUsers(users);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
+    addDataToFirestore(newData);
+    fetchData();
+
+    return () => {
+      unsubscribeSnapshot(); // Clean up the snapshot listener
     };
-
-    //fetchData();
-  }, []); */
-
-
-  fetchData();
   }, []);
 
-  const fetchData = async () => {
-    todoRef.onSnapshot((querySnapshot) => {
+  // Function to Fetch Data from Firebase Firestore
+  const fetchData = () => {
+    const unsubscribeSnapshot = todoRef.onSnapshot((querySnapshot) => {
       const updatedUsers = [];
       querySnapshot.forEach((doc) => {
         const { heading, text } = doc.data();
@@ -43,20 +48,20 @@ export default function Fetch() {
     });
   };
 
-  const handleUpdate = async (id
-    , newText) => {
+  //Function to update Data from Firebase Firestore
+  const handleUpdate = async (id, newText) => {
     try {
-      await todoRef.doc('4DqdKITSNKiEGUGJ6xXi'
-        ).update({ text: 'React Native is an open-source framework for building cross-platform mobile applications using JavaScript and React' });
+      await todoRef.doc(id).update({ text: newText });
       console.log('Data updated successfully!');
     } catch (error) {
       console.error('Error updating data:', error);
     }
   };
 
+  // Function to Delete Data from Firebase Firestore
   const handleDelete = async (id) => {
     try {
-      await todoRef.doc('XoWb6gGcVFFiEEYQziiJ').delete();
+      await todoRef.doc(id).delete();
       console.log('Data deleted successfully!');
     } catch (error) {
       console.error('Error deleting data:', error);
